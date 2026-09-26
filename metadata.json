@@ -1,0 +1,8 @@
+{
+  "name": "九份 Jiufen｜山城、老街與海景之旅",
+  "description": "探索台灣九份山城、九份老街、茶館、特色美食與迷人夜景，規劃一趟充滿文化與風景的九份旅行。",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
