@@ -1134,6 +1134,530 @@
     }
 
     /* ==========================================================================
+       INTERACTIVE MINI-MAP COMPONENT (九份山城漫步導覽小地圖)
+       ========================================================================== */
+    .mini-map-card {
+      margin-top: 52px;
+      background: linear-gradient(145deg, #151922 0%, #1e2634 100%);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(212, 163, 115, 0.35);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+      padding: 38px 40px;
+      color: #ffffff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mini-map-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mini-map-title-group h3 {
+      font-family: var(--font-serif);
+      font-size: 1.55rem;
+      color: #ffffff;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mini-map-title-group p {
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 0.92rem;
+      margin-top: 4px;
+    }
+
+    .mini-map-live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(212, 163, 115, 0.12);
+      border: 1px solid rgba(212, 163, 115, 0.35);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--color-gold-400);
+      letter-spacing: 0.04em;
+    }
+
+    .live-pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+      animation: livePulse 2s infinite ease-in-out;
+    }
+
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* Map Viewport Area */
+    .mini-map-viewport {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: #0f131a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 0 45px rgba(0, 0, 0, 0.65);
+      user-select: none;
+    }
+
+    .mini-map-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    /* Map Orientation & Ocean Tag */
+    .map-compass-tag {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      z-index: 5;
+      background: rgba(15, 19, 26, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(212, 163, 115, 0.3);
+      font-size: 0.78rem;
+      color: var(--color-gold-400);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .map-ocean-tag {
+      position: absolute;
+      top: 20px;
+      left: 22px;
+      z-index: 5;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      color: rgba(56, 189, 248, 0.85);
+      background: rgba(15, 19, 26, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    .map-elev-tag {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 5;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.55);
+      background: rgba(15, 19, 26, 0.8);
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Map Interactive Pin */
+    .map-pin {
+      position: absolute;
+      z-index: 10;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0.2s;
+      outline: none;
+    }
+
+    .map-pin:hover,
+    .map-pin.active,
+    .map-pin:focus-visible {
+      transform: translate(-50%, -50%) scale(1.15) translateY(-6px);
+      z-index: 30;
+    }
+
+    /* Pin Marker Head with Icon */
+    .pin-marker {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      position: relative;
+      background: #1e2531;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+    }
+
+    /* Beacon Pulse Rings */
+    .pin-beacon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      animation: beaconPulse 2.4s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    }
+
+    .pin-beacon-delay {
+      animation-delay: 1.2s;
+    }
+
+    @keyframes beaconPulse {
+      0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(2.2);
+        opacity: 0;
+      }
+    }
+
+    /* Theme specifics for the 3 pins */
+    /* 1. 公車接駁站 (Bus) */
+    .pin-bus .pin-marker {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border-color: #7dd3fc;
+      box-shadow: 0 4px 18px rgba(2, 132, 199, 0.45);
+    }
+    .pin-bus .pin-beacon {
+      border: 2px solid #38bdf8;
+    }
+    .map-pin.pin-bus:hover .pin-marker,
+    .map-pin.pin-bus.active .pin-marker {
+      box-shadow: 0 0 26px rgba(56, 189, 248, 0.85);
+      border-color: #ffffff;
+    }
+
+    /* 2. 阿妹茶樓 (Amei) */
+    .pin-amei .pin-marker {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      border-color: #fca5a5;
+      box-shadow: 0 4px 18px rgba(220, 38, 38, 0.45);
+    }
+    .pin-amei .pin-beacon {
+      border: 2px solid #f87171;
+    }
+    .map-pin.pin-amei:hover .pin-marker,
+    .map-pin.pin-amei.active .pin-marker {
+      box-shadow: 0 0 26px rgba(248, 113, 113, 0.85);
+      border-color: #ffffff;
+    }
+
+    /* 3. 九份老街 (Street) */
+    .pin-street .pin-marker {
+      background: linear-gradient(135deg, #d97706, #92400e);
+      border-color: #fde047;
+      box-shadow: 0 4px 18px rgba(217, 119, 6, 0.45);
+    }
+    .pin-street .pin-beacon {
+      border: 2px solid #facc15;
+    }
+    .map-pin.pin-street:hover .pin-marker,
+    .map-pin.pin-street.active .pin-marker {
+      box-shadow: 0 0 26px rgba(250, 204, 21, 0.85);
+      border-color: #ffffff;
+    }
+
+    /* Pin Nameplate below */
+    .pin-nameplate {
+      margin-top: 8px;
+      background: rgba(15, 19, 26, 0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .map-pin:hover .pin-nameplate,
+    .map-pin.active .pin-nameplate {
+      border-color: var(--color-gold-400);
+      color: var(--color-gold-400);
+      background: rgba(11, 14, 19, 0.98);
+      transform: translateY(2px);
+    }
+
+    /* Pin Tooltip Card */
+    .pin-tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translate(-50%, 0);
+      width: 270px;
+      background: rgba(18, 23, 31, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(212, 163, 115, 0.45);
+      border-radius: var(--radius-md);
+      padding: 15px 16px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.65);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), visibility 0.3s;
+      z-index: 100;
+      text-align: left;
+    }
+
+    .pin-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 8px;
+      border-style: solid;
+      border-color: rgba(212, 163, 115, 0.45) transparent transparent transparent;
+    }
+
+    .map-pin:hover .pin-tooltip,
+    .map-pin.active .pin-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -14px);
+    }
+
+    .tooltip-category {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+
+    .pin-bus .tooltip-category { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; }
+    .pin-amei .tooltip-category { background: rgba(248, 113, 113, 0.2); color: #fca5a5; }
+    .pin-street .tooltip-category { background: rgba(250, 204, 21, 0.2); color: #fef08a; }
+
+    .tooltip-title {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .tooltip-desc {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.75);
+      line-height: 1.55;
+      margin-bottom: 8px;
+    }
+
+    .tooltip-walk {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--color-gold-400);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Animated Walking Route Trail in SVG */
+    .svg-walking-trail {
+      stroke-dasharray: 6 6;
+      animation: trailPulse 25s linear infinite;
+    }
+
+    @keyframes trailPulse {
+      to {
+        stroke-dashoffset: -100;
+      }
+    }
+
+    /* Bottom Interactive Landmark Selector Chips */
+    .mini-map-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .map-select-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: #ffffff;
+    }
+
+    .map-select-btn:hover,
+    .map-select-btn.active {
+      background: rgba(212, 163, 115, 0.12);
+      border-color: var(--color-gold-400);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .select-btn-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .select-btn-name {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .select-btn-desc {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.65);
+      line-height: 1.45;
+    }
+
+    .select-btn-meta {
+      font-size: 0.75rem;
+      color: var(--color-gold-400);
+      font-weight: 600;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Dynamic Route Summary Footer */
+    .map-route-summary {
+      margin-top: 20px;
+      background: rgba(10, 13, 18, 0.6);
+      border-radius: var(--radius-sm);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      border: 1px dashed rgba(212, 163, 115, 0.35);
+      font-size: 0.85rem;
+    }
+
+    .route-steps-flow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .route-arrow {
+      color: var(--color-gold-400);
+      font-weight: bold;
+    }
+
+    .route-step-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      transition: background 0.2s ease;
+    }
+
+    .route-step-tag.active {
+      background: rgba(212, 163, 115, 0.25);
+      border: 1px solid var(--color-gold-400);
+      color: #ffffff;
+    }
+
+    .route-total-badge {
+      color: var(--color-gold-400);
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+      .mini-map-card {
+        padding: 26px 18px;
+        margin-top: 36px;
+      }
+      .mini-map-viewport {
+        height: 420px;
+      }
+      .mini-map-actions {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .pin-nameplate {
+        font-size: 0.75rem;
+        padding: 3px 8px;
+      }
+      .pin-marker {
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+      }
+      .pin-tooltip {
+        width: 230px;
+        padding: 12px 14px;
+      }
+      .map-compass-tag,
+      .map-ocean-tag {
+        font-size: 0.7rem;
+        padding: 4px 10px;
+      }
+    }
+
+    /* ==========================================================================
        7. TRAVEL TIPS (旅行小提醒)
        ========================================================================== */
     .tips-section {
@@ -2231,6 +2755,281 @@
             </button>
           </div>
         </div>
+
+        <!-- ==========================================================================
+             INTERACTIVE MINI-MAP COMPONENT (九份山城漫步導覽小地圖)
+             ========================================================================== -->
+        <div class="mini-map-card reveal-item" id="miniMapSection">
+          <div class="mini-map-header">
+            <div class="mini-map-title-group">
+              <span class="section-eyebrow">INTERACTIVE WALKING MAP</span>
+              <h3>
+                <span>九份核心地標漫步地圖</span>
+                <span style="font-size: 1.1rem;" aria-hidden="true">🗺️</span>
+              </h3>
+              <p>懸停地標圓點或點選下方按鈕，即時探索「公車接駁站、阿妹茶樓、九份老街」相對位置與健行路徑。</p>
+            </div>
+            <div class="mini-map-live-badge">
+              <span class="live-pulse-dot" aria-hidden="true"></span>
+              <span>實時互動地圖</span>
+            </div>
+          </div>
+
+          <!-- Viewport Map Area -->
+          <div class="mini-map-viewport" id="mapViewport" role="region" aria-label="九份山城互動地圖">
+            <!-- Mountain & Coastal Stylized SVG Background -->
+            <svg class="mini-map-svg" viewBox="0 0 900 500" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <!-- Gradients -->
+                <radialGradient id="mountainGlow" cx="50%" cy="30%" r="60%">
+                  <stop offset="0%" stop-color="#1f2937" stop-opacity="0.8" />
+                  <stop offset="100%" stop-color="#0f131a" stop-opacity="1" />
+                </radialGradient>
+                <linearGradient id="oceanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#0369a1" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="#0f172a" stop-opacity="0.05" />
+                </linearGradient>
+                <linearGradient id="qicheRdGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#334155" />
+                  <stop offset="100%" stop-color="#475569" />
+                </linearGradient>
+                <linearGradient id="shuqiStepGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#b45309" />
+                  <stop offset="50%" stop-color="#d97706" />
+                  <stop offset="100%" stop-color="#f59e0b" />
+                </linearGradient>
+                <linearGradient id="trailGlowGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#38bdf8" />
+                  <stop offset="50%" stop-color="#f87171" />
+                  <stop offset="100%" stop-color="#facc15" />
+                </linearGradient>
+              </defs>
+
+              <!-- Ocean / Sea Area (North / Northwest) -->
+              <path d="M 0 0 L 900 0 L 900 130 C 750 110, 600 70, 420 90 C 260 110, 120 70, 0 100 Z" fill="url(#oceanGrad)" />
+              <path d="M 30 50 Q 120 40 220 55 T 440 45 T 660 55 T 880 40" stroke="#38bdf8" stroke-opacity="0.2" stroke-width="1.5" stroke-dasharray="4 8" fill="none" />
+              <path d="M 80 80 Q 200 65 320 85 T 580 75 T 820 85" stroke="#38bdf8" stroke-opacity="0.15" stroke-width="1.5" stroke-dasharray="6 10" fill="none" />
+
+              <!-- Keelung Mountain silhouette (基隆山稜線) -->
+              <path d="M 520 85 Q 640 25 760 80 T 890 110 L 890 200 L 520 200 Z" fill="#151d28" opacity="0.6" />
+              <text x="680" y="60" fill="#64748b" font-size="12" font-weight="600" letter-spacing="1">▲ 基隆山 (大肚美人山)</text>
+
+              <!-- Topographic Elevation Contours -->
+              <path d="M 0 160 C 180 150, 320 190, 480 170 C 650 150, 780 190, 900 170" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5" fill="none" />
+              <path d="M 0 240 C 150 230, 280 260, 450 240 C 620 220, 750 270, 900 240" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5" fill="none" />
+              <path d="M 0 320 C 140 310, 290 350, 470 320 C 660 290, 790 340, 900 320" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5" fill="none" />
+              <path d="M 0 400 C 170 380, 340 430, 520 390 C 700 360, 810 420, 900 390" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5" fill="none" />
+
+              <!-- Main Vehicular Road: 汽車路 (Qiche Road) -->
+              <g id="roadQiche">
+                <path d="M -20 440 C 80 430, 130 400, 180 370 C 230 340, 290 370, 360 410 C 440 450, 580 470, 720 460 C 820 450, 870 420, 920 400" 
+                      stroke="#1e293b" stroke-width="26" stroke-linecap="round" fill="none" />
+                <path d="M -20 440 C 80 430, 130 400, 180 370 C 230 340, 290 370, 360 410 C 440 450, 580 470, 720 460 C 820 450, 870 420, 920 400" 
+                      stroke="#334155" stroke-width="18" stroke-linecap="round" fill="none" />
+                <path d="M -20 440 C 80 430, 130 400, 180 370 C 230 340, 290 370, 360 410 C 440 450, 580 470, 720 460 C 820 450, 870 420, 920 400" 
+                      stroke="#94a3b8" stroke-width="2" stroke-dasharray="8 8" fill="none" opacity="0.6" />
+                <text x="60" y="450" fill="#94a3b8" font-size="11" font-weight="500">汽車路 (往瑞芳/台北)</text>
+              </g>
+
+              <!-- Historic Covered Market Street: 基山街 (Jishan Street / Old Street) -->
+              <g id="roadJishan">
+                <path d="M 330 200 C 430 170, 540 150, 666 140 C 760 130, 830 145, 920 160" 
+                      stroke="#451a03" stroke-width="16" stroke-linecap="round" fill="none" opacity="0.8" />
+                <path d="M 330 200 C 430 170, 540 150, 666 140 C 760 130, 830 145, 920 160" 
+                      stroke="#d97706" stroke-width="10" stroke-linecap="round" fill="none" />
+                <path d="M 330 200 C 430 170, 540 150, 666 140 C 760 130, 830 145, 920 160" 
+                      stroke="#fef08a" stroke-width="2" stroke-dasharray="4 6" fill="none" opacity="0.8" />
+                <text x="730" y="125" fill="#fde047" font-size="12" font-weight="700">基山街（熱鬧老街商圈）</text>
+              </g>
+
+              <!-- Iconic Lantern Stone Stairway: 豎崎路 (Shuqi Road 362 Stone Steps) -->
+              <g id="roadShuqi">
+                <!-- Outer glow and step border -->
+                <path d="M 180 370 C 240 330, 310 295, 432 250 C 490 225, 560 185, 666 140" 
+                      stroke="#78350f" stroke-width="18" stroke-linecap="round" fill="none" opacity="0.7" />
+                <path d="M 180 370 C 240 330, 310 295, 432 250 C 490 225, 560 185, 666 140" 
+                      stroke="url(#shuqiStepGrad)" stroke-width="10" stroke-linecap="round" fill="none" />
+                <!-- Stone Step cross lines -->
+                <path d="M 180 370 C 240 330, 310 295, 432 250 C 490 225, 560 185, 666 140" 
+                      stroke="#ffffff" stroke-width="3" stroke-dasharray="2 6" fill="none" opacity="0.9" />
+                <text x="270" y="275" fill="#fbbf24" font-size="12" font-weight="700" transform="rotate(-23 270 275)">豎崎路階梯（362級紅燈籠階梯）</text>
+              </g>
+
+              <!-- Connecting Walking Route Line (Glow Trail) -->
+              <path class="svg-walking-trail" 
+                    d="M 180 370 C 240 330, 310 295, 432 250 C 490 225, 560 185, 666 140" 
+                    stroke="url(#trailGlowGrad)" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.95" />
+
+              <!-- Secondary Scenic Points (For realistic spatial context) -->
+              <!-- 昇平戲院 near bottom of Shuqi steps -->
+              <g transform="translate(260, 325)">
+                <rect x="-8" y="-8" width="16" height="16" rx="4" fill="#1e293b" stroke="#64748b" stroke-width="1.5" />
+                <text x="14" y="4" fill="#94a3b8" font-size="11">昇平戲院</text>
+              </g>
+
+              <!-- 基山觀景台 Lookout near street end -->
+              <g transform="translate(800, 155)">
+                <circle cx="0" cy="0" r="6" fill="#1e293b" stroke="#eab308" stroke-width="1.5" />
+                <text x="12" y="4" fill="#cbd5e1" font-size="11">基山觀景台 (眺海處)</text>
+              </g>
+
+              <!-- Decorative Lanterns along Shuqi steps -->
+              <circle cx="230" cy="328" r="3.5" fill="#ef4444" />
+              <circle cx="300" cy="295" r="3.5" fill="#ef4444" />
+              <circle cx="370" cy="270" r="3.5" fill="#ef4444" />
+              <circle cx="500" cy="210" r="3.5" fill="#ef4444" />
+              <circle cx="580" cy="175" r="3.5" fill="#ef4444" />
+            </svg>
+
+            <!-- Map Orientation & Sea Tags -->
+            <div class="map-ocean-tag" aria-hidden="true">
+              <span>🌊</span>
+              <span>東海海面 · 遠眺基隆嶼</span>
+            </div>
+
+            <div class="map-compass-tag" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
+              <span>北方 (N)</span>
+            </div>
+
+            <div class="map-elev-tag" aria-hidden="true">
+              <span>⛰️</span>
+              <span>海拔約 300~350 公尺山城聚落</span>
+            </div>
+
+            <!-- PIN 1: 公車接駁站 (九份派出所 / 汽車路站) -->
+            <div class="map-pin pin-bus" id="pinBus" style="left: 20%; top: 74%;" tabindex="0" role="button" aria-label="查看公車接駁站資訊">
+              <div class="pin-beacon"></div>
+              <div class="pin-beacon pin-beacon-delay"></div>
+              <div class="pin-marker" title="公車接駁站">
+                <span aria-hidden="true">🚌</span>
+              </div>
+              <div class="pin-nameplate">公車接駁站</div>
+
+              <!-- Tooltip Card on Hover -->
+              <div class="pin-tooltip">
+                <span class="tooltip-category">交通接駁起點 · 抵達第一站</span>
+                <h4 class="tooltip-title">公車接駁站（九份派出所）</h4>
+                <p class="tooltip-desc">
+                  搭乘 965（板橋/西門）、1062（忠孝復興）或 788（瑞芳火車站）直達客運在此下車。
+                </p>
+                <div class="tooltip-walk">
+                  <span>🚶 沿豎崎路階梯上行約 3~4 分鐘直達阿妹茶樓</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- PIN 2: 阿妹茶樓 (豎崎路階梯) -->
+            <div class="map-pin pin-amei" id="pinAmei" style="left: 48%; top: 50%;" tabindex="0" role="button" aria-label="查看阿妹茶樓位置資訊">
+              <div class="pin-beacon"></div>
+              <div class="pin-beacon pin-beacon-delay"></div>
+              <div class="pin-marker" title="阿妹茶樓">
+                <span aria-hidden="true">🍵</span>
+              </div>
+              <div class="pin-nameplate">阿妹茶樓</div>
+
+              <!-- Tooltip Card on Hover -->
+              <div class="pin-tooltip">
+                <span class="tooltip-category">經典山城絕景 · 必訪文化地標</span>
+                <h4 class="tooltip-title">阿妹茶樓（豎崎路）</h4>
+                <p class="tooltip-desc">
+                  百年檜木建築高掛朱紅燈籠，面向深澳灣海景，入夜點燈璀璨如夢，對面海悅樓為最佳拍照點。
+                </p>
+                <div class="tooltip-walk">
+                  <span>🚶 沿石階再上行 2 分鐘直達九份老街入口</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- PIN 3: 九份老街 (基山街入口) -->
+            <div class="map-pin pin-street" id="pinStreet" style="left: 74%; top: 28%;" tabindex="0" role="button" aria-label="查看九份老街入口位置資訊">
+              <div class="pin-beacon"></div>
+              <div class="pin-beacon pin-beacon-delay"></div>
+              <div class="pin-marker" title="九份老街">
+                <span aria-hidden="true">🏮</span>
+              </div>
+              <div class="pin-nameplate">九份老街</div>
+
+              <!-- Tooltip Card on Hover -->
+              <div class="pin-tooltip">
+                <span class="tooltip-category">美食伴手禮集散地 · 基山街</span>
+                <h4 class="tooltip-title">九份老街（基山街）</h4>
+                <p class="tooltip-desc">
+                  九份最繁華的核心商圈，阿柑姨芋圓、阿蘭草仔粿、賴阿婆芋圓與手作木屐工藝品匯集於此。
+                </p>
+                <div class="tooltip-walk">
+                  <span>🚶 沿街漫步至街尾基山觀景台約 3 分鐘</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom 3 Interactive Landmark Selector Chips -->
+          <div class="mini-map-actions">
+            <!-- Chip 1 -->
+            <button class="map-select-btn" id="btnSelectBus" type="button" aria-label="聚焦公車接駁站">
+              <div class="select-btn-top">
+                <span class="select-btn-name">
+                  <span>🚌</span>
+                  <span>公車接駁站</span>
+                </span>
+                <span style="font-size: 0.75rem; background: rgba(56, 189, 248, 0.2); color: #7dd3fc; padding: 2px 8px; border-radius: 4px; font-weight: 600;">出發起點</span>
+              </div>
+              <p class="select-btn-desc">九份派出所旁公車站牌，965、1062、788 客運必經下車處。</p>
+              <div class="select-btn-meta">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>起點 ➔ 步行至阿妹茶樓約 3~4 分鐘</span>
+              </div>
+            </button>
+
+            <!-- Chip 2 -->
+            <button class="map-select-btn" id="btnSelectAmei" type="button" aria-label="聚焦阿妹茶樓">
+              <div class="select-btn-top">
+                <span class="select-btn-name">
+                  <span>🍵</span>
+                  <span>阿妹茶樓</span>
+                </span>
+                <span style="font-size: 0.75rem; background: rgba(248, 113, 113, 0.2); color: #fca5a5; padding: 2px 8px; border-radius: 4px; font-weight: 600;">核心絕景</span>
+              </div>
+              <p class="select-btn-desc">豎崎路最具代表性的紅燈籠茶館，品味高山茗茶與遠眺日落晚霞。</p>
+              <div class="select-btn-meta">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>茶樓 ➔ 步行至老街入口約 2 分鐘</span>
+              </div>
+            </button>
+
+            <!-- Chip 3 -->
+            <button class="map-select-btn" id="btnSelectStreet" type="button" aria-label="聚焦九份老街">
+              <div class="select-btn-top">
+                <span class="select-btn-name">
+                  <span>🏮</span>
+                  <span>九份老街</span>
+                </span>
+                <span style="font-size: 0.75rem; background: rgba(250, 204, 21, 0.2); color: #fef08a; padding: 2px 8px; border-radius: 4px; font-weight: 600;">美食商圈</span>
+              </div>
+              <p class="select-btn-desc">基山街傳統巷道，集結芋圓、草仔粿、黑糖薑母茶與特色伴手禮。</p>
+              <div class="select-btn-meta">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>老街 ➔ 漫步基山觀景台約 3 分鐘</span>
+              </div>
+            </button>
+          </div>
+
+          <!-- Dynamic Walking Route Flow Footer -->
+          <div class="map-route-summary">
+            <div class="route-steps-flow">
+              <span style="color: var(--color-gold-400); font-weight: 700;">🚶 建議散步動線：</span>
+              <span class="route-step-tag active" id="tagBus">🚌 公車接駁站</span>
+              <span class="route-arrow">➔</span>
+              <span class="route-step-tag" id="tagAmei">🍵 阿妹茶樓（上行約 3 分鐘）</span>
+              <span class="route-arrow">➔</span>
+              <span class="route-step-tag" id="tagStreet">🏮 九份老街（上行約 2 分鐘）</span>
+            </div>
+            <div class="route-total-badge">
+              <span>⏱️ 全程核心徒步約 8~10 分鐘（單程約 400m）</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -2751,6 +3550,73 @@
           showToast('🌦️ 春秋兩季最舒爽！如遇山城雨天在茶樓聽雨觀霧，別具詩意。');
         });
       }
+
+      // --- 9. Interactive Mini-Map Component Handlers ---
+      const mapPins = {
+        bus: document.getElementById('pinBus'),
+        amei: document.getElementById('pinAmei'),
+        street: document.getElementById('pinStreet')
+      };
+
+      const mapButtons = {
+        bus: document.getElementById('btnSelectBus'),
+        amei: document.getElementById('btnSelectAmei'),
+        street: document.getElementById('btnSelectStreet')
+      };
+
+      const mapTags = {
+        bus: document.getElementById('tagBus'),
+        amei: document.getElementById('tagAmei'),
+        street: document.getElementById('tagStreet')
+      };
+
+      const landmarkMessages = {
+        bus: '🚌 公車接駁站：965、1062、788客運下車點，由此沿階梯上行約3~4分鐘至阿妹茶樓！',
+        amei: '🍵 阿妹茶樓：豎崎路必訪經典茶坊，面向海景夕陽，傍晚點燈氛圍最夢幻！',
+        street: '🏮 九份老街：基山街核心商圈，聚集芋圓、草仔粿小吃伴手禮，步行2分鐘通往茶樓！'
+      };
+
+      function setActiveMapLandmark(key, triggerToast = false) {
+        Object.keys(mapPins).forEach(k => {
+          if (mapPins[k]) mapPins[k].classList.toggle('active', k === key);
+          if (mapButtons[k]) mapButtons[k].classList.toggle('active', k === key);
+          if (mapTags[k]) mapTags[k].classList.toggle('active', k === key);
+        });
+
+        if (triggerToast && landmarkMessages[key]) {
+          showToast(landmarkMessages[key]);
+        }
+      }
+
+      // Link buttons with pins
+      Object.keys(mapButtons).forEach(key => {
+        const btn = mapButtons[key];
+        if (!btn) return;
+
+        btn.addEventListener('mouseenter', () => setActiveMapLandmark(key, false));
+        btn.addEventListener('click', () => setActiveMapLandmark(key, true));
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setActiveMapLandmark(key, true);
+          }
+        });
+      });
+
+      // Link pins click & keyboard
+      Object.keys(mapPins).forEach(key => {
+        const pin = mapPins[key];
+        if (!pin) return;
+
+        pin.addEventListener('mouseenter', () => setActiveMapLandmark(key, false));
+        pin.addEventListener('click', () => setActiveMapLandmark(key, true));
+        pin.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setActiveMapLandmark(key, true);
+          }
+        });
+      });
 
       // --- 10. Scroll Reveal Animations (IntersectionObserver) ---
       if ('IntersectionObserver' in window) {
